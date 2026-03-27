@@ -11,3 +11,18 @@ pointcloud_player:
     range_y: 12.0
     ground_z: -1.4
 
+bev_projection:
+  ros__parameters:
+    input_topic: /points_raw
+    bev_tensor_topic: /bev_tensor
+    bev_image_topic: /bev_image
+    frame_id: lidar
+    x_min: -40.0
+    x_max: 40.0
+    y_min: -40.0
+    y_max: 40.0
+    z_min: -3.0
+    z_max: 2.0
+    resolution: 0.16
+    num_height_bins: 8
+    preview_normalize_mode: max_bin

@@ -19,7 +19,7 @@ setup(
         (f"share/{package_name}/launch", [str(launch_file)]),
         (f"share/{package_name}/config", [str(config_file)]),
     ],
-    install_requires=["setuptools"],
+    install_requires=["setuptools", "numpy"],
     zip_safe=True,
     maintainer="JYins",
     maintainer_email="todo@example.com",
@@ -28,6 +28,7 @@ setup(
     tests_require=["pytest"],
     entry_points={
         "console_scripts": [
+            "bev_projection = lidar_perception.bev_projection:main",
             "pointcloud_player = lidar_perception.pointcloud_player:main",
         ],
     },

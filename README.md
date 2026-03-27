@@ -12,6 +12,7 @@ So this repo focuses on one practical slice of the problem: LiDAR in, perception
 pointcloud_player
     -> /points_raw
     -> bev_projection
+        -> /bev_tensor
         -> /bev_image
     -> cluster_detector
         -> /detections
@@ -47,7 +48,11 @@ This is the first step so the rest of the pipeline can be tested before I wire i
 
 ### bev_projection
 
-Planned ROS2 node for projecting the incoming point cloud into a BEV image.
+Subscribes to the raw point cloud and builds a fixed 8-height-channel BEV.
+It publishes:
+
+- `/bev_tensor` for the full `(H, W, 8)` representation
+- `/bev_image` as a simple `mono8` preview for RViz2
 
 ### cluster_detector
 
@@ -61,18 +66,16 @@ Planned logger for per-frame timing and simple detection-rate statistics.
 
 Current parameters live in `config/demo.yaml`.
 
-The first synthetic input version uses:
+Current parameters cover:
 
-- topic name
-- frame id
-- publish rate
-- cluster count
-- points per cluster
-- cluster spread
-- ground point count
-- x/y range
+- synthetic point cloud topic and publish settings
+- BEV tensor and preview topics
+- fixed x/y/z projection range
+- BEV resolution
+- number of height bins
+- preview image mode
 
-Later I will expand this with BEV range, resolution, and clustering thresholds.
+Later I will expand this with clustering thresholds and logging options.
 
 ## Results
 
@@ -97,14 +100,12 @@ That means a few choices are deliberate:
 ## Limitations
 
 - The current input is synthetic, not a public rosbag yet
-- BEV projection is not added yet
 - Clustering is not added yet
 - Latency and detection-rate logging are not added yet
 
 ## Future work
 
 - Replace synthetic input with a small public LiDAR dataset
-- Add configurable BEV projection
 - Add Euclidean clustering and marker visualization
 - Add latency logging and simple summary export
 - Add Docker and RViz2 config for a one-command demo
