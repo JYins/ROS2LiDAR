@@ -1,0 +1,13 @@
+pointcloud_player:
+  ros__parameters:
+    topic_name: /points_raw
+    frame_id: lidar
+    publish_rate_hz: 10.0
+    cluster_count: 4
+    points_per_cluster: 45
+    cluster_spread: 0.8
+    ground_points: 120
+    range_x: 20.0
+    range_y: 12.0
+    ground_z: -1.4
+

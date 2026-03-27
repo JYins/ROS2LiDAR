@@ -1,15 +1,15 @@
 # ROS2 LiDAR Perception Demo
 
-> Work in progress. Building this repo step by step like a normal engineer, not magic.
+Small ROS2 project for LiDAR point cloud playback, BEV projection, simple clustering, and RViz2 visualization.
 
-This repo is for a small ROS2 LiDAR perception demo I can actually explain in an interview without hand-waving. The goal is pretty simple: play LiDAR point clouds, turn them into a BEV view, run a basic clustering-based detector, and visualize everything in RViz2. Anyways, I want this project to stay practical, reproducible, and honest. If something is not finished yet, I will mark it clearly instead of pretending it already works.
+I am building this repo as a clean robotics portfolio project. The scope is intentionally small: one LiDAR pipeline, one launch flow, one Docker setup later, and a few simple metrics. If something is not finished yet, I will say so directly.
 
 ## Why this repo exists
 
-I wanted one robotics project in my portfolio that feels focused and grounded.
+I wanted one robotics project in my portfolio that feels focused and practical.
 Not a full autonomy stack.
 Not a research code dump.
-Just one clean ROS2 demo that shows I can work with sensor data, structure a pipeline, and think a little about latency, visualization, and reproducibility.
+Just a clear ROS2 demo that shows I can work with sensor data, pipeline structure, visualization, and basic profiling.
 
 ## Planned pipeline
 
@@ -28,15 +28,17 @@ pointcloud_player
 ## Current status
 
 - Repo created and connected to GitHub
-- README started
-- Real ROS2 workspace files: not added yet
+- ROS2 workspace skeleton added
+- Synthetic point cloud publisher code added
 - Docker setup: not added yet
 - Public rosbag / sample data: not added yet
 - Metrics: not generated yet
+- BEV projection: not added yet
+- Clustering: not added yet
 
 ## Planned features
 
-- Synthetic point cloud publisher first, so the pipeline is testable even without a public rosbag on day one
+- Synthetic point cloud publisher first, so the pipeline is testable before I bring in a public rosbag
 - BEV projection node with configurable range and resolution
 - Simple Euclidean clustering for basic object-level visualization
 - RViz2 config for one-command demo startup later
@@ -50,31 +52,39 @@ pointcloud_player
 
 I will only fill these numbers after the pipeline actually runs.
 
-## Quick note
-
-If you are reading this early, yes, this repo is still in the "starting from first principles" phase.
-That is intentional.
-I want the commit history to look like how I really build things: one small piece working, then the next one, then cleanup after.
-
 ## Roadmap
 
-1. Initialize the ROS2 workspace skeleton
-2. Add a synthetic point cloud publisher
-3. Add BEV projection
-4. Add simple clustering
-5. Add latency logging and result summaries
-6. Dockerize the pipeline
-7. Add tests and CI
-8. Clean up docs and visualization assets
+1. Add a synthetic point cloud publisher
+2. Add BEV projection
+3. Add simple clustering
+4. Add latency logging and result summaries
+5. Dockerize the pipeline
+6. Add tests and CI
+7. Clean up docs and visualization assets
+
+## Local run note
+
+I have not run this in the current Windows workspace yet because `ros2` is not installed here right now.
+Once ROS2 Humble is installed, the next target command will be:
+
+```bash
+ros2 launch lidar_perception demo_launch.py
+```
 
 ## Limitations right now
 
-- Nothing runnable yet
+- Only the synthetic input step is started
 - No latency or detection metrics yet
 - No screenshots yet
+- No public rosbag wired in yet
 
 ## Future work
 
 - Switch from synthetic input to a small public rosbag or PCD sample
-- Try stronger clustering or lightweight tracking if the basic version is stable
+- Add BEV projection and clustering outputs
 - Add cleaner evaluation scripts once there is real output to evaluate
+
+## Project note
+
+I want this repo to stay straightforward and engineering-focused.
+Simple pipeline, clear files, honest results.
