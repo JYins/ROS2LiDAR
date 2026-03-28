@@ -29,6 +29,7 @@ setup(
     entry_points={
         "console_scripts": [
             "bev_projection = lidar_perception.bev_projection:main",
+            "cluster_detector = lidar_perception.cluster_detector:main",
             "pointcloud_player = lidar_perception.pointcloud_player:main",
         ],
     },

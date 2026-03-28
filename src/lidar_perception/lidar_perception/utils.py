@@ -171,3 +171,105 @@ def build_mono_image_msg(header_stamp, frame_id, img):
     msg.step = int(img.shape[1])
     msg.data = img.tobytes()
     return msg
+
+
+def run_euclidean_clustering(
+    points,
+    distance_threshold=1.2,
+    min_cluster_size=5,
+    max_cluster_size=200,
+    cluster_z_min=-1.0,
+    cluster_z_max=2.0,
+):
+    cloud = [
+        point
+        for point in points
+        if cluster_z_min <= point[2] <= cluster_z_max
+    ]
+    clusters = []
+    visited = [False] * len(cloud)
+    dist_sq = distance_threshold * distance_threshold
+
+    for start_idx in range(len(cloud)):
+        if visited[start_idx]:
+            continue
+
+        queue = [start_idx]
+        visited[start_idx] = True
+        cluster = []
+
+        while queue:
+            idx = queue.pop()
+            cluster.append(cloud[idx])
+            px, py, pz, _ = cloud[idx]
+
+            for next_idx in range(len(cloud)):
+                if visited[next_idx]:
+                    continue
+
+                qx, qy, qz, _ = cloud[next_idx]
+                dx = px - qx
+                dy = py - qy
+                dz = pz - qz
+
+                if dx * dx + dy * dy + dz * dz <= dist_sq:
+                    visited[next_idx] = True
+                    queue.append(next_idx)
+
+        if min_cluster_size <= len(cluster) <= max_cluster_size:
+            clusters.append(cluster)
+
+    return clusters
+
+
+def summarize_cluster(cluster):
+    xyz = np.array([[x, y, z] for x, y, z, _ in cluster], dtype=np.float32)
+    mins = xyz.min(axis=0)
+    maxs = xyz.max(axis=0)
+    center = (mins + maxs) / 2.0
+    size = np.maximum(maxs - mins, np.array([0.2, 0.2, 0.2], dtype=np.float32))
+
+    return {
+        "center_x": float(center[0]),
+        "center_y": float(center[1]),
+        "center_z": float(center[2]),
+        "size_x": float(size[0]),
+        "size_y": float(size[1]),
+        "size_z": float(size[2]),
+        "count": int(len(cluster)),
+    }
+
+
+def build_cluster_markers(header_stamp, frame_id, summaries):
+    from visualization_msgs.msg import Marker, MarkerArray
+
+    markers = MarkerArray()
+
+    clear_marker = Marker()
+    clear_marker.header.stamp = header_stamp
+    clear_marker.header.frame_id = frame_id
+    clear_marker.action = Marker.DELETEALL
+    markers.markers.append(clear_marker)
+
+    for idx, summary in enumerate(summaries):
+        marker = Marker()
+        marker.header.stamp = header_stamp
+        marker.header.frame_id = frame_id
+        marker.ns = "clusters"
+        marker.id = idx
+        marker.type = Marker.CUBE
+        marker.action = Marker.ADD
+        marker.pose.orientation.w = 1.0
+        marker.pose.position.x = summary["center_x"]
+        marker.pose.position.y = summary["center_y"]
+        marker.pose.position.z = summary["center_z"]
+        marker.scale.x = summary["size_x"]
+        marker.scale.y = summary["size_y"]
+        marker.scale.z = summary["size_z"]
+        marker.color.r = 1.0
+        marker.color.g = 0.55
+        marker.color.b = 0.15
+        marker.color.a = 0.75
+        markers.markers.append(marker)
+
+    return markers

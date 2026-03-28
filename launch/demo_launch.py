@@ -24,6 +24,13 @@ def generate_launch_description():
                 name="bev_projection",
                 output="screen",
                 parameters=[config_path],
+            ),
+            Node(
+                package="lidar_perception",
+                executable="cluster_detector",
+                name="cluster_detector",
+                output="screen",
+                parameters=[config_path],
             )
         ]
     )

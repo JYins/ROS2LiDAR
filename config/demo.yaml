@@ -26,3 +26,14 @@ bev_projection:
     resolution: 0.16
     num_height_bins: 8
     preview_normalize_mode: max_bin
+
+cluster_detector:
+  ros__parameters:
+    input_topic: /points_raw
+    cluster_topic: /detections
+    frame_id: lidar
+    distance_threshold: 1.2
+    min_cluster_size: 12
+    max_cluster_size: 400
+    cluster_z_min: -1.0
+    cluster_z_max: 2.0

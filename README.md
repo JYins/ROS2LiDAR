@@ -56,7 +56,8 @@ It publishes:
 
 ### cluster_detector
 
-Planned ROS2 node for simple Euclidean clustering and RViz2 marker publishing.
+Runs a simple Euclidean clustering pass on the point cloud and publishes `MarkerArray` boxes for RViz2.
+This part stays intentionally basic so the detections are easy to inspect and explain.
 
 ### latency_logger
 
@@ -70,12 +71,13 @@ Current parameters cover:
 
 - synthetic point cloud topic and publish settings
 - BEV tensor and preview topics
+- clustering topic and thresholds
 - fixed x/y/z projection range
 - BEV resolution
 - number of height bins
 - preview image mode
 
-Later I will expand this with clustering thresholds and logging options.
+Later I will expand this with latency logging and RViz2-specific options.
 
 ## Results
 
@@ -100,12 +102,11 @@ That means a few choices are deliberate:
 ## Limitations
 
 - The current input is synthetic, not a public rosbag yet
-- Clustering is not added yet
+- The current clustering is intentionally simple and not tuned for large clouds
 - Latency and detection-rate logging are not added yet
 
 ## Future work
 
 - Replace synthetic input with a small public LiDAR dataset
-- Add Euclidean clustering and marker visualization
 - Add latency logging and simple summary export
 - Add Docker and RViz2 config for a one-command demo
