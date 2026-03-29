@@ -37,3 +37,12 @@ cluster_detector:
     max_cluster_size: 400
     cluster_z_min: -1.0
     cluster_z_max: 2.0
+
+latency_logger:
+  ros__parameters:
+    pointcloud_topic: /points_raw
+    bev_image_topic: /bev_image
+    cluster_topic: /detections
+    results_dir: results
+    latency_file: latency_stats.csv
+    detection_file: detection_summary.csv

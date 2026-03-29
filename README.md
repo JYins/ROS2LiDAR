@@ -61,7 +61,7 @@ This part stays intentionally basic so the detections are easy to inspect and ex
 
 ### latency_logger
 
-Planned logger for per-frame timing and simple detection-rate statistics.
+Writes per-frame latency rows and cluster-count rows into the `results/` folder.
 
 ## Configuration
 
@@ -84,7 +84,10 @@ Later I will expand this with latency logging and RViz2-specific options.
 - Avg latency: TODO
 - Detection summary: TODO
 
-I will add real numbers only after the profiling and evaluation pieces are in place.
+Current generation command:
+`ros2 launch lidar_perception demo_launch.py`
+then
+`python scripts/summarize_results.py`
 
 ## Design direction
 
@@ -103,10 +106,8 @@ That means a few choices are deliberate:
 
 - The current input is synthetic, not a public rosbag yet
 - The current clustering is intentionally simple and not tuned for large clouds
-- Latency and detection-rate logging are not added yet
 
 ## Future work
 
 - Replace synthetic input with a small public LiDAR dataset
-- Add latency logging and simple summary export
 - Add Docker and RViz2 config for a one-command demo

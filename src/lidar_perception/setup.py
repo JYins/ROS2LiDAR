@@ -27,6 +27,7 @@ setup(
         "console_scripts": [
             "bev_projection = lidar_perception.bev_projection:main",
             "cluster_detector = lidar_perception.cluster_detector:main",
+            "latency_logger = lidar_perception.latency_logger:main",
             "pointcloud_player = lidar_perception.pointcloud_player:main",
         ],
     },

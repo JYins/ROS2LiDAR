@@ -31,6 +31,13 @@ def generate_launch_description():
                 name="cluster_detector",
                 output="screen",
                 parameters=[config_path],
+            ),
+            Node(
+                package="lidar_perception",
+                executable="latency_logger",
+                name="latency_logger",
+                output="screen",
+                parameters=[config_path],
             )
         ]
     )
