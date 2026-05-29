@@ -1,29 +1,37 @@
 # ROS2 LiDAR Perception Demo
 
-ROS2 demo for LiDAR point cloud playback, BEV projection, simple clustering, and RViz2 visualization.
+[![CI](https://github.com/JYins/ROS2LiDAR/actions/workflows/ci.yml/badge.svg)](https://github.com/JYins/ROS2LiDAR/actions/workflows/ci.yml)
 
-This project grew out of my MEng research discussions at Western University. My research project was on cooperative BEV reconstruction, where the main question was how to recover an occluded area using LiDAR information from another vehicle view. During that work, my supervisor and I narrowed a lot of the discussion down to the perception side, especially how much can be done from LiDAR-only input before getting into heavier model design. Based on that, I wanted a separate ROS2 project that is smaller, cleaner, and easier to explain as an engineering demo.
+ROS2 demo for LiDAR point cloud playback, BEV projection, simple object detection, latency logging, and RViz2 visualization.
 
-So this repo focuses on one practical slice of the problem: LiDAR in, perception outputs out. The idea is to keep the system simple enough to run and inspect, but still structured enough to talk about playback, projection, detection, visualization, and later profiling.
+This project came out of my MEng research discussions at Western University. In my research work I spent a lot of time thinking about LiDAR-based BEV representations and what information is worth keeping for later 3D reasoning. This repo is a smaller and more engineering-focused version of that thinking: one clean ROS2 pipeline, beginner-friendly code, simple outputs, and enough structure to be useful in an interview or as a learning project.
 
 ## Architecture
 
 ```text
 pointcloud_player
     -> /points_raw
-    -> bev_projection
-        -> /bev_tensor
-        -> /bev_image
-    -> cluster_detector
-        -> /detections
-    -> latency_logger
-        -> results/latency_stats.csv
-        -> results/detection_summary.csv
+
+bev_projection
+    <- /points_raw
+    -> /bev_tensor
+    -> /bev_image
+
+cluster_detector
+    <- /points_raw
+    -> /detections
+
+latency_logger
+    <- /points_raw
+    <- /bev_image
+    <- /detections
+    -> results/latency_stats.csv
+    -> results/detection_summary.csv
 ```
 
 ## Quick start
 
-### Local
+### Local ROS2
 
 ```bash
 colcon build --packages-select lidar_perception
@@ -31,83 +39,123 @@ source install/setup.bash
 ros2 launch lidar_perception demo_launch.py
 ```
 
+Open RViz2 with:
+
+```bash
+rviz2 -d config/rviz_config.rviz
+```
+
+After the pipeline runs for a bit:
+
+```bash
+python scripts/summarize_results.py
+```
+
 ### Docker
 
 ```bash
-docker compose up
+docker compose up --build
 ```
 
-Docker support is planned for a later step. Right now the local ROS2 path is the first target.
+This starts the ROS2 nodes inside a container and writes result CSV files into the local `results/` folder.
 
 ## Nodes
 
 ### pointcloud_player
 
-Publishes a synthetic `sensor_msgs/PointCloud2` stream for now.
-This is the first step so the rest of the pipeline can be tested before I wire in a public rosbag or PCD sample.
+Publishes a synthetic `sensor_msgs/PointCloud2` stream.
+Right now this is the default input so the project is runnable without downloading a public dataset first.
 
 ### bev_projection
 
-Subscribes to the raw point cloud and builds a fixed 8-height-channel BEV.
-It publishes:
+Subscribes to `/points_raw` and projects the cloud into a fixed 8-height-channel BEV.
 
-- `/bev_tensor` for the full `(H, W, 8)` representation
+Outputs:
+
+- `/bev_tensor` as the full `(500, 500, 8)` representation
 - `/bev_image` as a simple `mono8` preview for RViz2
 
 ### cluster_detector
 
-Runs a simple Euclidean clustering pass on the point cloud and publishes `MarkerArray` boxes for RViz2.
-This part stays intentionally basic so the detections are easy to inspect and explain.
+Runs a simple Euclidean clustering pass on the point cloud and publishes `/detections` as `MarkerArray`.
+This is a basic object-level demo, not a production detector.
 
 ### latency_logger
 
-Writes per-frame latency rows and cluster-count rows into the `results/` folder.
+Watches the main pipeline topics and writes:
+
+- `results/latency_stats.csv`
+- `results/detection_summary.csv`
 
 ## Configuration
 
-Current parameters live in `config/demo.yaml`.
+Main parameters live in `config/demo.yaml`.
 
-Current parameters cover:
+Current config covers:
 
-- synthetic point cloud topic and publish settings
-- BEV tensor and preview topics
-- clustering topic and thresholds
-- fixed x/y/z projection range
-- BEV resolution
+- synthetic input settings
+- BEV range and resolution
 - number of height bins
-- preview image mode
+- clustering thresholds
+- result file locations
 
-Later I will expand this with latency logging and RViz2-specific options.
+Important defaults:
+
+- BEV `x/y`: `[-40 m, 40 m]`
+- BEV `z`: `[-3 m, 2 m]`
+- BEV resolution: `0.16 m`
+- height bins: `8`
 
 ## Results
 
-- Avg latency: TODO
-- Detection summary: TODO
+Current generation flow:
 
-Current generation command:
-`ros2 launch lidar_perception demo_launch.py`
-then
-`python scripts/summarize_results.py`
+```bash
+ros2 launch lidar_perception demo_launch.py
+python scripts/summarize_results.py
+```
 
-## Design direction
+Current checked-in result files:
 
-The design here is intentionally narrow.
-My research repo is closer to a real experiment workspace.
-This repo is meant to be a cleaner engineering demo around LiDAR perception in ROS2.
+- `results/latency_stats.csv`
+- `results/detection_summary.csv`
 
-That means a few choices are deliberate:
+If you want fresh numbers, rerun the launch and regenerate from the current run instead of trusting old CSVs.
+
+## Screenshots
+
+Screenshot placeholder for now:
+
+- RViz2 point cloud view
+- RViz2 cluster marker view
+- RViz2 BEV image view
+
+## Design decisions
+
+Short version:
 
 - Python first, so iteration stays fast
-- synthetic input first, so the pipeline is debuggable early
-- simple clustering first, so the behavior stays easy to inspect in RViz2
-- Docker later, once the core nodes are stable
+- synthetic input first, so the pipeline always runs
+- 8 height channels, so the BEV keeps more structure
+- simple clustering, so the outputs stay easy to inspect
+- CSV logging, so the results are easy to read
+
+More detail:
+
+- `docs/architecture.md`
+- `docs/design_decisions.md`
 
 ## Limitations
 
-- The current input is synthetic, not a public rosbag yet
-- The current clustering is intentionally simple and not tuned for large clouds
+- The default input is synthetic, not a public rosbag yet
+- The detector is intentionally simple
+- The nodes are regular `rclpy` nodes right now, not ROS2 lifecycle nodes
+- This repo does not claim production-grade tracking or classification
+- Docker runs the ROS2 pipeline, but RViz2 is still easiest to use locally
 
 ## Future work
 
-- Replace synthetic input with a small public LiDAR dataset
-- Add Docker and RViz2 config for a one-command demo
+- Add a public rosbag or PCD-based playback path
+- Add a cleaner RViz2 screenshot set
+- Tighten latency measurement with more explicit per-node timing hooks
+- Add a stronger detector after the current baseline is stable
