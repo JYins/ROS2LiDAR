@@ -4,7 +4,7 @@
 
 ROS2 demo for LiDAR point cloud playback, BEV projection, simple object detection, latency logging, and RViz2 visualization.
 
-This project came out of my MEng research discussions at Western University. In my research work I spent a lot of time thinking about LiDAR-based BEV representations and what information is worth keeping for later 3D reasoning. This repo is a smaller and more engineering-focused version of that thinking: one clean ROS2 pipeline, beginner-friendly code, simple outputs, and enough structure to be useful in an interview or as a learning project.
+This project came out of my MEng research discussions at Western University. In that work I kept narrowing the problem down to perception and LiDAR-only BEV representation. This repo is the smaller ROS2 demo version of that idea: one clean pipeline, beginner-friendly code, simple outputs, and a BEV design that still keeps more structure than a flat occupancy image.
 
 ## Architecture
 
@@ -68,7 +68,12 @@ Right now this is the default input so the project is runnable without downloadi
 
 ### bev_projection
 
-Subscribes to `/points_raw` and projects the cloud into a fixed 8-height-channel BEV.
+Subscribes to `/points_raw` and projects the cloud into a fixed 8-channel BEV.
+
+The current tensor follows the later MEng-style layout:
+
+- channels `0-3`: log-normalized density in 4 height bins
+- channels `4-7`: max height in the same 4 bins
 
 Outputs:
 
@@ -95,7 +100,8 @@ Current config covers:
 
 - synthetic input settings
 - BEV range and resolution
-- number of height bins
+- fixed BEV bin edges
+- density normalization cap
 - clustering thresholds
 - result file locations
 
@@ -104,7 +110,8 @@ Important defaults:
 - BEV `x/y`: `[-40 m, 40 m]`
 - BEV `z`: `[-3 m, 2 m]`
 - BEV resolution: `0.16 m`
-- height bins: `8`
+- height bins: `[-3.0, -1.5, 0.0, 1.0, 2.0]`
+- tensor layout: `4 density + 4 max-height`
 
 ## Results
 
@@ -136,7 +143,7 @@ Short version:
 
 - Python first, so iteration stays fast
 - synthetic input first, so the pipeline always runs
-- 8 height channels, so the BEV keeps more structure
+- MEng-style 8-channel BEV, so the demo stays closer to my research direction
 - simple clustering, so the outputs stay easy to inspect
 - CSV logging, so the results are easy to read
 

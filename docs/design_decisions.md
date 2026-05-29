@@ -18,12 +18,28 @@ This is useful for three reasons:
 2. RViz can show the full pipeline early
 3. later dataset integration becomes a swap, not a rewrite
 
-## 8 height channels for BEV
+## Research-style 8-channel BEV
 
-Instead of a single grayscale BEV image, I used 8 height channels.
-This is more useful for later 3D reasoning than a flat occupancy image.
+Instead of a single grayscale BEV image, I used an 8-channel layout:
 
-It also matches the way I was thinking about BEV in my research work: keep the vertical structure instead of throwing it away too early.
+- 4 channels for density in fixed height bins
+- 4 channels for max height in the same bins
+
+This is closer to the version that became more stable in my MEng project.
+It still keeps vertical structure, but it is a bit more informative than just counting occupancy in 8 separate slices.
+
+The current default bins are:
+
+- `[-3.0, -1.5)`
+- `[-1.5, 0.0)`
+- `[0.0, 1.0)`
+- `[1.0, 2.0)`
+
+I kept the range and resolution the same as my research-style setup:
+
+- `x/y`: `[-40 m, 40 m]`
+- `z`: `[-3 m, 2 m]`
+- resolution: `0.16 m`
 
 ## Simple Euclidean clustering
 
@@ -56,4 +72,3 @@ That matters a lot for ROS2 work because dependency drift is common.
 
 The Docker setup here is meant to answer a practical question:
 "Can someone else pull this repo and run the same pipeline without rebuilding my whole environment by hand?"
-

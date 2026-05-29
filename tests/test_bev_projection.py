@@ -21,12 +21,12 @@ def test_point_lands_in_expected_cell_and_bin():
         z_min=-3.0,
         z_max=2.0,
         resolution=0.16,
-        num_height_bins=8,
+        height_bin_edges=[-3.0, -1.5, 0.0, 1.0, 2.0],
     )
 
     idx = point_to_bev_index(0.0, 0.0, -0.5, config)
 
-    assert idx == (250, 250, 4)
+    assert idx == (250, 250, 1)
 
 
 def test_points_outside_bounds_are_ignored():
@@ -40,7 +40,8 @@ def test_points_outside_bounds_are_ignored():
 
     bev = project_points_to_bev(points, config)
 
-    assert bev.sum() == 1.0
+    assert np.count_nonzero(bev[:, :, :4]) == 1
+    assert np.count_nonzero(bev[:, :, 4:]) == 0
 
 
 def test_bev_shape_is_fixed():
@@ -48,6 +49,17 @@ def test_bev_shape_is_fixed():
     bev = project_points_to_bev([(0.0, 0.0, 0.0, 1.0)], config)
 
     assert bev.shape == (500, 500, 8)
+
+
+def test_density_and_height_channels_are_split():
+    config = make_bev_config()
+    bev = project_points_to_bev([(0.0, 0.0, 0.5, 1.0)], config)
+
+    row, col, bin_idx = point_to_bev_index(0.0, 0.0, 0.5, config)
+
+    assert bev[row, col, bin_idx] > 0.0
+    assert bev[row, col, 4 + bin_idx] > 0.4
+    assert bev[row, col, 4 + bin_idx] < 0.6
 
 
 def test_preview_image_is_not_empty_for_valid_points():

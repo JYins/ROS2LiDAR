@@ -65,8 +65,13 @@ def make_bev_config(
     z_min=-3.0,
     z_max=2.0,
     resolution=0.16,
-    num_height_bins=8,
+    height_bin_edges=None,
+    density_cap=20.0,
 ):
+    if height_bin_edges is None:
+        height_bin_edges = [-3.0, -1.5, 0.0, 1.0, 2.0]
+
+    bins = build_height_bins(height_bin_edges)
     width = int(round((x_max - x_min) / resolution))
     height = int(round((y_max - y_min) / resolution))
 
@@ -78,10 +83,29 @@ def make_bev_config(
         "z_min": float(z_min),
         "z_max": float(z_max),
         "resolution": float(resolution),
-        "num_height_bins": int(num_height_bins),
+        "height_bins": bins,
+        "num_bins": len(bins),
+        "num_channels": len(bins) * 2,
+        "density_cap": float(density_cap),
         "width": width,
         "height": height,
     }
+
+
+def build_height_bins(height_bin_edges):
+    edges = [float(value) for value in height_bin_edges]
+    if len(edges) < 2:
+        raise ValueError("need at least two height bin edges")
+
+    bins = []
+    for idx in range(len(edges) - 1):
+        z_lo = edges[idx]
+        z_hi = edges[idx + 1]
+        if z_hi <= z_lo:
+            raise ValueError("height bin edges must be strictly increasing")
+        bins.append((z_lo, z_hi))
+
+    return bins
 
 
 def point_to_bev_index(x, y, z, config):
@@ -100,18 +124,24 @@ def point_to_bev_index(x, y, z, config):
     if row < 0 or row >= config["height"]:
         return None
 
-    # map z into one fixed height bin, this is the core BEV trick here
-    z_span = config["z_max"] - config["z_min"]
-    z_pos = (z - config["z_min"]) / z_span
-    bin_idx = int(z_pos * config["num_height_bins"])
-    bin_idx = min(max(bin_idx, 0), config["num_height_bins"] - 1)
+    bin_idx = None
+    for idx, (z_lo, z_hi) in enumerate(config["height_bins"]):
+        if z_lo <= z < z_hi:
+            bin_idx = idx
+            break
+
+    if bin_idx is None and z == config["z_max"]:
+        bin_idx = config["num_bins"] - 1
+
+    if bin_idx is None:
+        return None
 
     return row, col, bin_idx
 
 
 def project_points_to_bev(points, config):
     bev = np.zeros(
-        (config["height"], config["width"], config["num_height_bins"]),
+        (config["height"], config["width"], config["num_channels"]),
         dtype=np.float32,
     )
 
@@ -120,7 +150,28 @@ def project_points_to_bev(points, config):
         if idx is None:
             continue
         row, col, bin_idx = idx
+
+        # first half is density, second half is max height inside that bin
         bev[row, col, bin_idx] += 1.0
+
+        z_lo, z_hi = config["height_bins"][bin_idx]
+        z_span = z_hi - z_lo
+        if z_span <= 0.0:
+            continue
+
+        z_norm = (z - z_lo) / z_span
+        z_norm = float(np.clip(z_norm, 0.0, 1.0))
+        height_channel = config["num_bins"] + bin_idx
+        if z_norm > bev[row, col, height_channel]:
+            bev[row, col, height_channel] = z_norm
+
+    density_channels = slice(0, config["num_bins"])
+    log_cap = np.log1p(max(config["density_cap"], 1.0))
+    bev[:, :, density_channels] = np.clip(
+        np.log1p(bev[:, :, density_channels]) / log_cap,
+        0.0,
+        1.0,
+    )
 
     return bev
 
@@ -129,7 +180,13 @@ def build_preview_image(bev, mode="max_bin"):
     if bev.ndim != 3:
         raise ValueError("bev must be a 3D array")
 
-    occ = bev > 0.0
+    if bev.shape[2] >= 2 and bev.shape[2] % 2 == 0:
+        num_bins = bev.shape[2] // 2
+        occ = bev[:, :, :num_bins] > 0.0
+    else:
+        num_bins = bev.shape[2]
+        occ = bev > 0.0
+
     img = np.zeros(bev.shape[:2], dtype=np.uint8)
 
     if mode != "max_bin":
@@ -139,7 +196,7 @@ def build_preview_image(bev, mode="max_bin"):
     rows, cols = np.where(occ.any(axis=2))
     for row, col in zip(rows, cols):
         bin_idx = int(np.where(occ[row, col])[0].max())
-        level = (bin_idx + 1) / bev.shape[2]
+        level = (bin_idx + 1) / num_bins
         img[row, col] = int(255 * level)
 
     return img

@@ -26,7 +26,8 @@ class BevProjection(Node):
         self.declare_parameter("z_min", -3.0)
         self.declare_parameter("z_max", 2.0)
         self.declare_parameter("resolution", 0.16)
-        self.declare_parameter("num_height_bins", 8)
+        self.declare_parameter("height_bin_edges", [-3.0, -1.5, 0.0, 1.0, 2.0])
+        self.declare_parameter("density_cap", 20.0)
         self.declare_parameter("preview_normalize_mode", "max_bin")
 
         input_topic = self.get_parameter("input_topic").value
@@ -45,7 +46,7 @@ class BevProjection(Node):
 
         self.get_logger().info(
             "bev_projection ready "
-            f"grid={self.config['height']}x{self.config['width']}x{self.config['num_height_bins']}"
+            f"grid={self.config['height']}x{self.config['width']}x{self.config['num_channels']}"
         )
 
     def _load_config(self):
@@ -57,7 +58,8 @@ class BevProjection(Node):
             z_min=float(self.get_parameter("z_min").value),
             z_max=float(self.get_parameter("z_max").value),
             resolution=float(self.get_parameter("resolution").value),
-            num_height_bins=int(self.get_parameter("num_height_bins").value),
+            height_bin_edges=list(self.get_parameter("height_bin_edges").value),
+            density_cap=float(self.get_parameter("density_cap").value),
         )
 
     def process_cloud(self, cloud):

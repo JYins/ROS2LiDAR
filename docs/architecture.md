@@ -39,7 +39,12 @@ I started with synthetic input on purpose so the whole pipeline can run even bef
 ### 2. BEV projection
 
 `bev_projection` takes the raw point cloud and maps it into a fixed bird's-eye-view grid.
-The current representation uses 8 height channels because that is closer to the BEV representation I used in my research workflow.
+The current representation follows the BEV layout that became more stable in my MEng project:
+
+- channels `0-3`: density in 4 fixed height bins
+- channels `4-7`: max height in those same 4 bins
+
+That still gives an 8-channel tensor, but it is more informative than just stacking 8 raw occupancy slices.
 
 Two outputs come out of this node:
 
@@ -71,4 +76,3 @@ I kept the repo split by node because it makes the pipeline easy to explain in a
 - where the metrics go
 
 That keeps the project small enough to understand quickly, but still realistic enough to discuss ROS2 topics, launch files, and reproducibility.
-
