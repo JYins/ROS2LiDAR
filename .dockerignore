@@ -1,0 +1,10 @@
+.git
+.github
+AGENTS.md
+build
+install
+log
+.pytest_cache
+__pycache__
+results/*.csv
+

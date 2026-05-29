@@ -4,6 +4,7 @@ from setuptools import find_packages, setup
 package_name = "lidar_perception"
 launch_file = "../../launch/demo_launch.py"
 config_file = "../../config/demo.yaml"
+rviz_file = "../../config/rviz_config.rviz"
 
 
 setup(
@@ -14,7 +15,7 @@ setup(
         ("share/ament_index/resource_index/packages", [f"resource/{package_name}"]),
         (f"share/{package_name}", ["package.xml"]),
         (f"share/{package_name}/launch", [launch_file]),
-        (f"share/{package_name}/config", [config_file]),
+        (f"share/{package_name}/config", [config_file, rviz_file]),
     ],
     install_requires=["setuptools", "numpy"],
     zip_safe=True,

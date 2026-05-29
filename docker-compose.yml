@@ -1,0 +1,18 @@
+services:
+  lidar_demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ros2-lidar-perception:humble
+    container_name: ros2-lidar-perception
+    working_dir: /workspace/ros2demo
+    command: >
+      bash -lc
+      "source /opt/ros/humble/setup.bash &&
+      source install/setup.bash &&
+      ros2 launch lidar_perception demo_launch.py"
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./results:/workspace/ros2demo/results
+
