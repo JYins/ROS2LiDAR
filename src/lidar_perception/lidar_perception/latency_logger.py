@@ -78,6 +78,8 @@ class LatencyLogger(Node):
 
     def on_points(self, cloud):
         stamp_key = self._stamp_key(cloud.header.stamp)
+
+        # use one frame key so later topics can match back to the same cloud
         self.frame_times[stamp_key] = perf_counter()
         self._trim_frames()
 
@@ -92,6 +94,7 @@ class LatencyLogger(Node):
         if start_time is None:
             return
 
+        # this is still simple wall time, but good enough for portfolio demo
         latency_ms = (perf_counter() - start_time) * 1000.0
         self._append_latency(stamp_key, "bev_projection", latency_ms)
 

@@ -34,6 +34,7 @@ class PointCloudPlayer(Node):
         self.get_logger().info(f"publishing synthetic point cloud on {topic_name}")
 
     def publish_cloud(self):
+        # first make some ground, then add a few fake obstacle clusters
         points = []
         points.extend(self._build_ground_points())
         points.extend(self._build_cluster_points())
@@ -66,6 +67,7 @@ class PointCloudPlayer(Node):
 
         points = []
         for idx in range(cluster_count):
+            # keep a small motion here, otherwise every frame looks too static
             angle = (self.frame_count * 0.08) + idx * 1.1
             center_x = 4.0 + idx * 3.0 + math.sin(angle) * 0.6
             center_y = math.cos(angle) * (range_y * 0.45)

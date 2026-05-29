@@ -100,6 +100,7 @@ def point_to_bev_index(x, y, z, config):
     if row < 0 or row >= config["height"]:
         return None
 
+    # map z into one fixed height bin, this is the core BEV trick here
     z_span = config["z_max"] - config["z_min"]
     z_pos = (z - config["z_min"]) / z_span
     bin_idx = int(z_pos * config["num_height_bins"])
@@ -134,6 +135,7 @@ def build_preview_image(bev, mode="max_bin"):
     if mode != "max_bin":
         raise ValueError(f"unsupported preview mode: {mode}")
 
+    # RViz cannot directly show the full 8-channel tensor, so make a simple preview
     rows, cols = np.where(occ.any(axis=2))
     for row, col in zip(rows, cols):
         bin_idx = int(np.where(occ[row, col])[0].max())
@@ -181,6 +183,7 @@ def run_euclidean_clustering(
     cluster_z_min=-1.0,
     cluster_z_max=2.0,
 ):
+    # remove obvious ground-ish points first, otherwise clusters get messy fast
     cloud = [
         point
         for point in points
@@ -199,6 +202,7 @@ def run_euclidean_clustering(
         cluster = []
 
         while queue:
+            # this is a plain region growing loop, not optimized but easy to follow
             idx = queue.pop()
             cluster.append(cloud[idx])
             px, py, pz, _ = cloud[idx]

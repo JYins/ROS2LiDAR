@@ -61,6 +61,7 @@ class BevProjection(Node):
         )
 
     def process_cloud(self, cloud):
+        # unpack first, then keep the projection math very direct
         points = unpack_pointcloud2(cloud)
         bev = project_points_to_bev(points, self.config)
         img = build_preview_image(bev, mode=self.preview_mode)
@@ -68,6 +69,7 @@ class BevProjection(Node):
         stamp = cloud.header.stamp
         frame_id = self.frame_id or cloud.header.frame_id
 
+        # publish both versions: one for later learning, one for RViz
         tensor_msg = build_bev_tensor_msg(bev)
         image_msg = build_mono_image_msg(stamp, frame_id, img)
 

@@ -39,6 +39,8 @@ class ClusterDetector(Node):
 
     def process_cloud(self, cloud):
         points = unpack_pointcloud2(cloud)
+
+        # for now keep clustering simple, euclidean is enough for this demo
         clusters = run_euclidean_clustering(
             points,
             distance_threshold=float(self.get_parameter("distance_threshold").value),
@@ -48,6 +50,7 @@ class ClusterDetector(Node):
             cluster_z_max=float(self.get_parameter("cluster_z_max").value),
         )
 
+        # later can switch to a stronger detector, but box markers are easy to read
         summaries = [summarize_cluster(cluster) for cluster in clusters]
         frame_id = self.frame_id or cloud.header.frame_id
         markers = build_cluster_markers(cloud.header.stamp, frame_id, summaries)
